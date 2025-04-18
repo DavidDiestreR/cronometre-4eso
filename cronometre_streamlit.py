@@ -25,14 +25,27 @@ def trams_containment(km):
     return [nom for nom, P in TRAMS.items() if P["rang"][0] <= km <= P["rang"][1]]
 
 def calcula_temps(tram_sel, ki, kf):
+    # Cas especial volta completa
+    if (ki == 0.0 and kf == 220.0) or (ki == 220.0 and kf == 0.0):
+        membership = trams_containment(0.0)
+        if not membership:
+            raise ValueError("Els km han d’estar entre 0 i 220.")
+        if tram_sel not in membership:
+            suggerit = membership[0]
+            raise ValueError(f"Per fer aquesta mesura cal que viatgi al tram «{suggerit}»")
+        return segons_a_hms(TIEMPO_VUELTA)
+
+    # Cas mateixa posició
     if ki == kf:
         membership = trams_containment(ki)
         if not membership:
             raise ValueError("Els km han d’estar entre 0 i 220.")
         if tram_sel not in membership:
-            raise ValueError(f"Per fer aquesta mesura cal que viatgi al tram «{membership[0]}»")
+            suggerit = membership[0]
+            raise ValueError(f"Per fer aquesta mesura cal que viatgi al tram «{suggerit}»")
         return segons_a_hms(TIEMPO_VUELTA)
 
+    # Cas normal
     m_ki = trams_containment(ki)
     m_kf = trams_containment(kf)
     if not m_ki or not m_kf:
@@ -69,19 +82,3 @@ def calcula_temps(tram_sel, ki, kf):
             raise ValueError("Temps negatiu: revisa les dades.")
 
     return segons_a_hms(t)
-
-
-# === GUI Streamlit ===
-st.title("⏱️ Cronòmetre – Física 4t ESO")
-st.markdown("Calculadora de temps segons el tram i posicions quilomètriques.")
-
-tram = st.selectbox("Des d'on estàs utilitzant el cronòmetre?", list(TRAMS.keys()))
-ki = st.number_input("Kilòmetre Inici", min_value=0.0, max_value=220.0, step=0.1)
-kf = st.number_input("Kilòmetre Final", min_value=0.0, max_value=220.0, step=0.1)
-
-if st.button("Calcula"):
-    try:
-        temps = calcula_temps(tram, ki, kf)
-        st.success(f"Temps mesurat: **{temps}**")
-    except ValueError as e:
-        st.error(str(e))
