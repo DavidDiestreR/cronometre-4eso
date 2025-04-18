@@ -82,3 +82,19 @@ def calcula_temps(tram_sel, ki, kf):
             raise ValueError("Temps negatiu: revisa les dades.")
 
     return segons_a_hms(t)
+
+
+# === GUI Streamlit ===
+st.title("⏱️ Cronòmetre")
+st.markdown("Calculadora de temps segons el tram i posicions quilomètriques.")
+
+tram = st.selectbox("Des d'on estàs utilitzant el cronòmetre?", list(TRAMS.keys()))
+ki = st.number_input("Kilòmetre Inici", min_value=0.0, max_value=220.0, step=0.1)
+kf = st.number_input("Kilòmetre Final", min_value=0.0, max_value=220.0, step=0.1)
+
+if st.button("Calcula"):
+    try:
+        temps = calcula_temps(tram, ki, kf)
+        st.success(f"Temps mesurat: **{temps}**")
+    except ValueError as e:
+        st.error(str(e))
