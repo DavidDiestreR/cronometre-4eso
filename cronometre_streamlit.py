@@ -74,7 +74,7 @@ def calcula_temps(tram_sel, ki, kf):
 
 # === INTERFÍCIE STREAMLIT ===
 
-st.title("⏱️ Cronòmetre del Tren Fantasma")
+st.title("⏱️ Cronòmetre")
 st.markdown("Calculadora de temps segons el tram i posicions quilomètriques.")
 
 tram = st.selectbox("Des d'on estàs utilitzant el cronòmetre?", list(TRAMS.keys()))
