@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from math import sqrt
 
-# === DADES DEL RECORREGUT ===
+# === PARÀMETRES DELS TRAMS ===
+
 TRAMS = {
     "Tram Poble-Riu": {
         "tipo": "MRU",  "v": 25.0,    "rang": (0.0,   120.0)
@@ -16,7 +17,9 @@ TRAMS = {
     },
 }
 
-TIEMPO_VUELTA = 4800 + 300 + 2700  # segons
+TIEMPO_VUELTA = 4800 + 300 + 2700
+
+# === FUNCIONS ===
 
 def segons_a_hms(t):
     h = int(t // 3600)
@@ -35,6 +38,7 @@ def calcula_temps(tram_sel, ki, kf):
     m_kf = trams_containment(kf)
     if not m_ki or not m_kf:
         raise ValueError("Els km han d’estar entre 0 i 220.")
+
     common = set(m_ki) & set(m_kf)
     if not common:
         raise ValueError("Els punts no són visibles des del mateix tram.")
@@ -44,46 +48,32 @@ def calcula_temps(tram_sel, ki, kf):
     if tram_real == "Tram Muntanya-Poble":
         raise ValueError("La neblina impedeix veure aquest tram complet.")
 
-    lo, hi = min(ki, kf), max(ki, kf)
     P = TRAMS[tram_real]
+    lo, hi = min(ki, kf), max(ki, kf)
 
     if P["tipo"] == "MRU":
-        t = (hi - lo) * 1000 / P["v"]
+        s = (hi - lo) * 1000.0
+        t = s / P["v"]
     else:
         vo, a = P["vo"], P["a"]
+        x0 = P["rang"][0]
 
-        def temps_absolut(pos):
-            d = (pos - P["rang"][0]) * 1000  # m des de l'inici del tram
+        def temps_absolut(pos_km):
+            d = (pos_km - x0) * 1000  # m des de l’inici del tram
             discriminant = vo**2 + 2*a*d
             if discriminant < 0:
                 raise ValueError("No hi ha solució real per a aquests paràmetres.")
-            t = (-vo + sqrt(discriminant)) / a
+            t1 = (-vo + sqrt(discriminant)) / a
+            t2 = (-vo - sqrt(discriminant)) / a
+            t = max(t1, t2)
             if t < 0:
-                t = (-vo - sqrt(discriminant)) / a
-            if t < 0:
-                raise ValueError("Temps negatiu: revisa les dades.")
+                raise ValueError("Temps negatiu.")
             return t
 
         t = abs(temps_absolut(kf) - temps_absolut(ki))
 
     return segons_a_hms(t)
 
-# === GUI Streamlit ===
-st.title("\u23f1\ufe0f Cron\u00f2metre")
-st.markdown("Calculadora de temps segons el tram i posicions quilom\u00e8triques.")
-
-tram = st.selectbox("Des d'on est\u00e0s utilitzant el cron\u00f2metre?", list(TRAMS.keys()))
-ki = st.number_input("Kil\u00f2metre Inici", min_value=0.0, max_value=220.0, step=0.1)
-kf = st.number_input("Kil\u00f2metre Final", min_value=0.0, max_value=220.0, step=0.1)
-
-if st.button("Calcula"):
-    try:
-        temps = calcula_temps(tram, ki, kf)
-        st.success(f"Temps mesurat: **{temps}**")
-    except ValueError as e:
-        st.error(str(e))
-
-# === GR\u00c0FIQUES ===
 def calcula_temps_brut(vo, a, s):
     A = 0.5 * a
     B = vo
@@ -92,36 +82,34 @@ def calcula_temps_brut(vo, a, s):
     return (-B + sqrt(discriminant)) / (2*A)
 
 def velocitat_vs_posicio():
-    x_vals_totals = []
-    v_vals_totals = []
+    x_vals, v_vals = [], []
 
     # MRU
     x_mru = np.linspace(0, 120, 200)
     v_mru = np.full_like(x_mru, TRAMS["Tram Poble-Riu"]["v"])
-    x_vals_totals.extend(x_mru)
-    v_vals_totals.extend(v_mru)
+    x_vals.extend(x_mru)
+    v_vals.extend(v_mru)
 
     # MRUA positiva
     vo_rm, a_rm = TRAMS["Tram Riu-Muntanya"]["vo"], TRAMS["Tram Riu-Muntanya"]["a"]
     t_rm = np.linspace(0, calcula_temps_brut(vo_rm, a_rm, 10_000), 100)
     x_rm = vo_rm * t_rm + 0.5 * a_rm * t_rm**2
     v_rm = vo_rm + a_rm * t_rm
-    x_vals_totals.extend(120 + x_rm / 1000)
-    v_vals_totals.extend(v_rm)
+    x_vals.extend(120 + x_rm / 1000)
+    v_vals.extend(v_rm)
 
     # MRUA negativa
     vo_mp, a_mp = TRAMS["Tram Muntanya-Poble"]["vo"], TRAMS["Tram Muntanya-Poble"]["a"]
     t_mp = np.linspace(0, calcula_temps_brut(vo_mp, a_mp, 90_000), 100)
     x_mp = vo_mp * t_mp + 0.5 * a_mp * t_mp**2
     v_mp = vo_mp + a_mp * t_mp
-    x_vals_totals.extend(130 + x_mp / 1000)
-    v_vals_totals.extend(v_mp)
+    x_vals.extend(130 + x_mp / 1000)
+    v_vals.extend(v_mp)
 
-    return x_vals_totals, v_vals_totals
+    return x_vals, v_vals
 
 def velocitat_vs_temps():
-    t_vals = []
-    v_vals = []
+    t_vals, v_vals = [], []
 
     # MRU
     x_mru = np.linspace(0, 120, 200)
@@ -146,24 +134,45 @@ def velocitat_vs_temps():
 
     return t_vals, v_vals
 
-# Mostrar gràfiques
-x_graph, v_x_graph = velocitat_vs_posicio()
-t_graph, v_t_graph = velocitat_vs_temps()
+# === INTERFÍCIE STREAMLIT ===
 
-st.subheader("Gràfica de Velocitat vs Posició (v-x)")
+st.title("⏱️ Cronòmetre del Tren Fantasma")
+st.markdown("Calculadora de temps segons el tram i posicions quilomètriques.")
+
+tram = st.selectbox("Des d'on estàs utilitzant el cronòmetre?", list(TRAMS.keys()))
+ki = st.number_input("Kilòmetre Inici", min_value=0.0, max_value=220.0, step=0.1)
+kf = st.number_input("Kilòmetre Final", min_value=0.0, max_value=220.0, step=0.1)
+
+if st.button("Calcula Temps"):
+    try:
+        temps = calcula_temps(tram, ki, kf)
+        st.success(f"Temps mesurat: **{temps}**")
+    except ValueError as e:
+        st.error(str(e))
+
+# === GRÀFIQUES ===
+
+st.markdown("---")
+st.subheader("📈 Gràfiques de velocitat")
+
+# Gràfica v(x)
+x_graph, v_x_graph = velocitat_vs_posicio()
 fig1, ax1 = plt.subplots()
 ax1.plot(x_graph, v_x_graph, label="v(x)")
 ax1.set_xlabel("Posició (km)")
 ax1.set_ylabel("Velocitat (m/s)")
+ax1.set_title("Velocitat vs Posició")
 ax1.grid(True)
 ax1.legend()
 st.pyplot(fig1)
 
-st.subheader("Gràfica de Velocitat vs Temps (v-t)")
+# Gràfica v(t)
+t_graph, v_t_graph = velocitat_vs_temps()
 fig2, ax2 = plt.subplots()
 ax2.plot(t_graph, v_t_graph, label="v(t)", color="orange")
 ax2.set_xlabel("Temps (s)")
 ax2.set_ylabel("Velocitat (m/s)")
+ax2.set_title("Velocitat vs Temps")
 ax2.grid(True)
 ax2.legend()
 st.pyplot(fig2)
