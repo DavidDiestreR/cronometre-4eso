@@ -7,10 +7,10 @@ TRAMS = {
     "Tram Poble-Riu": {
         "tipo": "MRU",  "v": 25.0,    "rang": (0.0,   120.0)
     },
-    "Tram Riu-Muntanya": {
+    "Tram Riu-Mines": {
         "tipo": "MRUA", "vo": 25.0,   "a": 1/18,   "rang": (120.0, 130.0)
     },
-    "Tram Muntanya-Poble": {
+    "Tram Mines-Poble": {
         "tipo": "MRUA", "vo": 125/3,  "a": -1/162,  "rang": (130.0, 220.0)
     },
 }
@@ -61,7 +61,7 @@ def calcula_temps(tram_sel, ki, kf):
     tram_real = common.pop()
     if tram_real != tram_sel:
         raise ValueError(f"Mesura incorrecta: cal triar el tram «{tram_real}»")
-    if tram_real == "Tram Muntanya-Poble":
+    if tram_real == "Tram Mines-Poble":
         raise ValueError("La neblina impedeix veure aquest tram complet.")
 
     P = TRAMS[tram_real]
