@@ -93,7 +93,7 @@ def calcula_temps(tram_sel, ki, kf):
 # === INTERFÍCIE STREAMLIT ===
 
 st.title("⏱️ Cronòmetre")
-st.markdown("Útil per calcular el temps segons el tram en el que ens trobem i les posicions quilomètriques des d'on començem a contar fins on parem el cronòmetre.")
+st.markdown("Útil per calcular el temps segons el tram en el que ens trobem i les posicions quilomètriques des d'on començem a comptar fins on parem el cronòmetre.")
 
 tram = st.selectbox("Des d'on estàs utilitzant el cronòmetre?", list(TRAMS.keys()))
 ki = st.number_input("Kilòmetre Inici", min_value=0.0, max_value=220.0, step=0.1)
