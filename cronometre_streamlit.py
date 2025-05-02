@@ -4,13 +4,13 @@ from math import sqrt
 # === PARÀMETRES DELS TRAMS ===
 
 TRAMS = {
-    "Tram Poble-Riu": {
+    "Poble-Riu": {
         "tipo": "MRU",  "v": 25.0,    "rang": (0.0,   120.0)
     },
-    "Tram Riu-Mines": {
+    "Riu-Mines": {
         "tipo": "MRUA", "vo": 25.0,   "a": 1/18,   "rang": (120.0, 130.0)
     },
-    "Tram Mines-Poble": {
+    "Mines-Poble": {
         "tipo": "MRUA", "vo": 125/3,  "a": -1/162,  "rang": (130.0, 220.0)
     },
 }
@@ -60,7 +60,7 @@ def calcula_temps(tram_sel, ki, kf):
         raise ValueError("Els punts no són visibles des del mateix tram.")
     tram_real = common.pop()
     if tram_real != tram_sel:
-        raise ValueError(f"Mesura incorrecta: cal triar el tram «{tram_real}»")
+        raise ValueError(f"Per fer aquesta mesura cal que viatgi al tram «{tram_real}»")
     if tram_real == "Tram Mines-Poble":
         raise ValueError("La neblina impedeix veure aquest tram complet.")
 
