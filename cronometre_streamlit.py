@@ -61,7 +61,7 @@ def calcula_temps(tram_sel, ki, kf):
     tram_real = common.pop()
     if tram_real != tram_sel:
         raise ValueError(f"Per fer aquesta mesura cal que viatgi al tram «{tram_real}»")
-    if tram_real == "Tram Mines-Poble":
+    if tram_real == "Mines-Poble":
         raise ValueError("La neblina impedeix veure aquest tram complet.")
 
     P = TRAMS[tram_real]
