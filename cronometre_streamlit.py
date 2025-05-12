@@ -5,17 +5,17 @@ from math import sqrt
 
 TRAMS = {
     "Poble-Riu": {
-        "tipo": "MRU",  "v": 25.0,    "rang": (0.0,   120.0)
+        "tipo": "MRU",  "v": 20,    "rang": (0.0,   120.0)
     },
     "Riu-Mines": {
-        "tipo": "MRUA", "vo": 25.0,   "a": 1/18,   "rang": (120.0, 130.0)
+        "tipo": "MRUA", "vo": 20,   "a": 0.16,   "rang": (120.0, 130.0)
     },
     "Mines-Poble": {
-        "tipo": "MRUA", "vo": 125/3,  "a": -1/162,  "rang": (130.0, 220.0)
+        "tipo": "MRUA", "vo": 60,  "a": -0.02,  "rang": (130.0, 220.0)
     },
 }
 
-TIEMPO_VUELTA = 4800 + 300 + 2700  # 2h 10min en segons
+TIEMPO_VUELTA = 6000 + 250 + 2000  # 2h 17min 30s en segons
 
 # === FUNCIONS ===
 
@@ -23,7 +23,7 @@ def segons_a_hms(t):
     h = int(t // 3600)
     m = int((t % 3600) // 60)
     s = int(t % 60)
-    return f"{h:02d}:{m:02d}:{s:02d}"
+    return f"{h:02d} h : {m:02d} m : {s:02d} s"
 
 def trams_containment(km):
     return [nom for nom, P in TRAMS.items() if P["rang"][0] <= km <= P["rang"][1]]
